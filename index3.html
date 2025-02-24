@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Perceptron Classifier for L and T</title>
+    <style>
+        .grid { display: grid; grid-template-columns: repeat(4, 40px); gap: 2px; }
+        .cell { width: 40px; height: 40px; border: 1px solid black; text-align: center; }
+        .selected { background-color: lightblue; }
+    </style>
+</head>
+<body>
+    <h2>Perceptron Classifier: L vs. T</h2>
+    <div id="grid" class="grid"></div>
+    <button id="predict">Predict</button>
+    <p id="output"></p>
+
+    <script>
+        // Pre-trained weights based on L and T patterns
+        let weights = [
+            1,  1,  1,  1,
+            1, -1, -1,  1,
+            1, -1, -1,  1,
+            1,  1,  1,  1
+        ];
+        let bias = 0;
+
+        // Hardcoded training data (examples of L and T)
+        const trainingData = [
+            { input: [
+                1,  0,  0,  0,
+                1,  0,  0,  0,
+                1,  0,  0,  0,
+                1,  1,  1,  1
+            ], label: 1 }, // L
+            { input: [
+                0,  1,  1,  1,
+                0,  0,  1,  0,
+                0,  0,  1,  0,
+                0,  0,  1,  0
+            ], label: -1 } // T
+        ];
+
+        function trainPerceptron() {
+            let learningRate = 0.1;
+            for (let epoch = 0; epoch < 10; epoch++) {
+                for (let data of trainingData) {
+                    let x = data.input;
+                    let y = data.label;
+                    let yPred = x.reduce((sum, val, idx) => sum + val * weights[idx], bias);
+                    let error = y - Math.sign(yPred);
+                    for (let i = 0; i < weights.length; i++) {
+                        weights[i] += learningRate * error * x[i];
+                    }
+                    bias += learningRate * error;
+                }
+            }
+        }
+
+        trainPerceptron(); // Pre-train the perceptron
+
+        function createGrid() {
+            let grid = document.getElementById("grid");
+            for (let i = 0; i < 16; i++) {
+                let cell = document.createElement("div");
+                cell.classList.add("cell");
+                cell.onclick = () => cell.classList.toggle("selected");
+                grid.appendChild(cell);
+            }
+        }
+        createGrid();
+
+        function flattenGrid() {
+            return Array.from(document.querySelectorAll(".cell")).map(cell => cell.classList.contains("selected") ? 1 : 0);
+        }
+
+        function predict() {
+            let x = flattenGrid();
+            let yPred = x.reduce((sum, val, idx) => sum + val * weights[idx], bias);
+            let result = yPred >= 0 ? 'L' : 'T';
+            document.getElementById("output").innerText = `Prediction: ${result}`;
+        }
+
+        document.getElementById("predict").addEventListener("click", predict);
+    </script>
+</body>
+</html>
